@@ -88,7 +88,7 @@ module emu
 
 assign VGA_F1    = 0;
 assign USER_OUT  = '1;
-assign LED_USER  = disk_light_two;//ioctl_download;
+assign LED_USER  = disk_light;//ioctl_download;
 assign LED_DISK  = disk_light;
 assign LED_POWER = 0;
 wire disk_light;
@@ -436,26 +436,15 @@ wire reset = status[0] | buttons[1] |ioctl_download;
 
 wire [7:0] short_audio;
 wire [7:0] short_audio_two;
-assign audio_l = {1'b0,short_audio,7'b0} +  {1'b0,short_audio_two,7'b0};
-assign audio_r = {1'b0,short_audio_two,7'b0};
+//assign audio_l = {1'b0,short_audio,7'b0} +  {1'b0,short_audio_two,7'b0};
+//assign audio_r = {1'b0,short_audio_two,7'b0};
 
 
-   wav_player wav(
-     .CLK(clk_sys),
-     .switch_play(btn0_up),
-     .audio_out(short_audio),
-     .rom_a(rom_a),
-     .rom_d(rom_d),
-     .play(disk_light)
-    );
-
-   wav_player wav_load(
-     .CLK(clk_sys),
-     .switch_play(btn1_up),
-     .audio_out(short_audio_two),
-     .rom_a(rom_a_two),
-     .rom_d(rom_d_two),
-     .play(disk_light_two)
+   synthesizer synth(
+     .clk(),
+	  .frequency(440),
+     .audio_l(audio_l),
+     .audio_r(audio_r)
     );
 
 
@@ -496,49 +485,83 @@ module debounce(
     assign o_onup = ~idle & max & o_state;
 endmodule
 
-module wav_player(
-    input CLK,
-    input switch_play,
-  output reg [7:0] audio_out,
-  output reg [13:0]rom_a,
-  input [7:0]rom_d,
-  output reg play
-    );
 
-wire s_start=switch_play;
-//reg play = 0;
-reg [11:0] prescaler=0; 
-reg [13:0] address=0;
-reg [7:0] value;
+module synthesizer(
+	input clk,
+	input shortint frequency,
+	output wire[15:0] audio_l,
+	output wire[15:0] audio_r
+);
 
-reg [15:0] data;
+	localparam int CYCLES_IN_SECOND = 24000000;
+	int cycles_in_period;
+	assign cycles_in_period = CYCLES_IN_SECOND / frequency;
 
-always @(posedge CLK)
-begin
-  if (play)
-  begin
-    prescaler <= prescaler + 1;
-    /*if (prescaler == 12'd1)  
-    begin
-    end
-    */
-    if (prescaler == 12'd2177)  // 8kHz x 256 steps = 2.048 MHz
-    begin
-      prescaler <= 0;
-      rom_a<=address;
-      audio_out <= rom_d;
-      address <= address + 1;
-      if (address == 14'h3fff )
-      begin
-        play <= 0;
-        address <= 0;
-      end			  
-    end
-  end
-  if (s_start)
-  begin
-    play <= 1;
-  end	 
-end
+	int cycles_since_period_start;
+	bit is_high;
 
-endmodule 
+	initial begin
+		cycles_since_period_start = 0;
+		is_high = 0;
+	end
+
+	assign audio_l = {16{is_high}};
+	assign audio_r = audio_l;
+
+	always @(posedge clk) begin
+		if (cycles_since_period_start  >= cycles_in_period / 2) begin
+			is_high <= !is_high;
+			cycles_since_period_start <= 0;
+		end else begin
+			cycles_since_period_start <= cycles_since_period_start + 1;		
+		end
+	end
+
+endmodule
+
+//module wav_player(
+//    input CLK,
+//    input switch_play,
+//  output reg [7:0] audio_out,
+//  output reg [13:0]rom_a,
+//  input [7:0]rom_d,
+//  output reg play
+//    );
+//
+//wire s_start=switch_play;
+////reg play = 0;
+//reg [11:0] prescaler=0; 
+//reg [13:0] address=0;
+//reg [7:0] value;
+//
+//reg [15:0] data;
+//
+//always @(posedge CLK)
+//begin
+//  if (play)
+//  begin
+//    prescaler <= prescaler + 1;
+//    /*if (prescaler == 12'd1)  
+//    begin
+//    end
+//    */
+//    if (prescaler == 12'd2177)  // 8kHz x 256 steps = 2.048 MHz
+//    begin
+//      prescaler <= 0;
+//      rom_a<=address;
+//      audio_out <= rom_d;
+//      address <= address + 1;
+//      if (address == 14'h3fff )
+//      begin
+//        play <= 0;
+//        address <= 0;
+//      end			  
+//    end
+//  end
+//  if (s_start)
+//  begin
+//    play <= 1;
+//  end	 
+//end
+//
+//endmodule 
