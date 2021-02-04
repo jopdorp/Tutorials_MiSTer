@@ -1,83 +1,77 @@
-module Keyboard(input clk, input pressed, input[7:0] code, output int frequencies[7:0], voice_volumes);
+module Keyboard(input clk, input pressed, input[7:0] code, output int frequencies[7:0], output int voice_volumes[7:0]);
 	int ratios_left[12:0];
 	int ratios_right[12:0];
 	int ratios [12:0];
 	longint first, second;
-	wire[31:0] ratio;
+
+	int note_frequencies[12:0];
 
 	initial begin
 		for (int i = 0; i < 7; i++) begin: init_volumes
-			voice_volumes[i] = 0;
+			voice_volumes[i] <= 0;
+			frequencies[i] <= 0;
 		end
 		set_ratios();
 	end
 
-    Divider ratio_divider(first, second, ratio);
 
-	task set_division(byte index);
-      first = ratios_left[index] <<< 20;
-      second = ratios_right[index] <<< 20;
-    endtask
+	function get_freq(byte index);
+	  return (ratios_left[index] <<< 0)/ (ratios_right[index]) * 110;
+	endfunction
 
+	int new_freq;
+
+	reg done = 0;
+	
 	always @(posedge clk) begin
 		casex(code)
-			'h15: set_division(0); // Q
-			'h16: set_division(1); // 2
-			'h1D: set_division(2); // W
-			'h26: set_division(3); // 3
-			'h24: set_division(4); // E
-			'h2D: set_division(5); // R
-			'h2E: set_division(6); // 5
-			'h2C: set_division(7); // T
-			'h36: set_division(8); // 6
-			'h35: set_division(9); // Y
-			'h3D: set_division(10); // 7
-			'h3C: set_division(11); // U
-			'h43: set_division(12); // I
+			'h15: new_freq = note_frequencies[0]; // Q
+			'h16: new_freq = note_frequencies[1]; // 2
+			'h1D: new_freq = note_frequencies[2]; // W
+			'h26: new_freq = note_frequencies[3]; // 3
+			'h24: new_freq = note_frequencies[4]; // E
+			'h2D: new_freq = note_frequencies[5]; // R
+			'h2E: new_freq = note_frequencies[6]; // 5
+			'h2C: new_freq = note_frequencies[7]; // T
+			'h36: new_freq = note_frequencies[8]; // 6
+			'h35: new_freq = note_frequencies[9]; // Y
+			'h3D: new_freq = note_frequencies[10]; // 7
+			'h3C: new_freq = note_frequencies[11]; // U
+			'h43: new_freq = note_frequencies[12]; // I
 		endcase
 
+
+		done = 0;
 		for (int i = 0; i < 7; i++)begin: set_voice
-			if(pressed)begin
-				if(voice_volumes[i] == 0)begin
-					voice_volumes[i] <= 1 <<< 20;
-					frequencies[i] <= ratio * 110;
-				end	
-			end else begin
-				if(frequencies[i] == ratio && voice_volumes[i] == 1)begin
-					voice_volumes[i] <= 0;
+			if(!done)begin
+				if(pressed)begin
+					if(voice_volumes[i] == 0)begin
+						voice_volumes[i] <= 1 <<< 20;
+						frequencies[i] <= new_freq;
+						done = 1;
+					end	
+				end else begin
+					if(frequencies[i] == new_freq)begin
+						voice_volumes[i] <= 0;
+					end
 				end
 			end
-			
 		end
 	end
 
 	task set_ratios;
-		ratios_left[0] = 1;
-		ratios_left[1] = 16;;
-		ratios_left[2] = 9;
-		ratios_left[3] = 6;
-		ratios_left[4] = 5;
-		ratios_left[5] = 4;
-		ratios_left[6] = 45;
-		ratios_left[7] = 3;
-		ratios_left[8] = 8;
-		ratios_left[9] = 5;
-		ratios_left[10] = 16;
-		ratios_left[11] = 15;
-		ratios_left[12] = 2;
-
-		ratios_right[0] = 1;
-		ratios_right[1] = 15;
-		ratios_right[2] = 8;
-		ratios_right[3] = 5;
-		ratios_right[4] = 4;
-		ratios_right[5] = 3;
-		ratios_right[6] = 32;
-		ratios_right[7] = 2;
-		ratios_right[8] = 5;
-		ratios_right[9] = 3;
-		ratios_right[10]= 9;
-		ratios_right[11]= 8;
-		ratios_right[12]= 1;
+		note_frequencies[0] = (110 <<< 20) * 1;
+		note_frequencies[1] = (110 <<< 20) * 16 / 15;
+		note_frequencies[2] = (110 <<< 20) * 9 / 8;
+		note_frequencies[3] = (110 <<< 20) * 6 / 5;
+		note_frequencies[4] = (110 <<< 20) * 5 / 4;
+		note_frequencies[5] = (110 <<< 20) * 4 / 3;
+		note_frequencies[6] = (110 <<< 20) * 45 / 32;
+		note_frequencies[7] = (110 <<< 20) * 3 / 2;
+		note_frequencies[8] = (110 <<< 20) * 8 / 5;
+		note_frequencies[9] = (110 <<< 20) * 5 / 3;
+		note_frequencies[10] = (110 <<< 20) * 16 / 9;
+		note_frequencies[11] = (110 <<< 20) * 15 / 8;
+		note_frequencies[12] = (110 <<< 20) * 2 / 1;
 	endtask
 endmodule

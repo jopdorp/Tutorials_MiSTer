@@ -265,7 +265,8 @@ module emu
 
 	wire reset = status[0] | buttons[1] |ioctl_download; 
 
-	wire[7:0] frequencies, voice_volumes;
+	wire[31:0] frequencies[7:0];
+	wire[31:0] voice_volumes[7:0];
 
 	Keyboard keyboard(
 		.clk(clk_audio),
