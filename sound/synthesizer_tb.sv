@@ -5,14 +5,12 @@ module synthesizer_tb;
 
    int frequencies[7:0];
    int voice_volumes[7:0];
-   localparam int saw_volume = 1 <<< 19;
-   localparam int square_volume = 1 <<< 19;
    localparam int clock_speed = 48000;
-   localparam longint length = clock_speed / 2;
+   localparam longint length = clock_speed / 4;
 
    reg[2:0] cutoff = 0;
 
-   Synthesizer synth(clk, clock_speed, cutoff, square_volume, saw_volume, voice_volumes, frequencies, synth_out);
+   Synthesizer synth(clk, clock_speed, cutoff, voice_volumes, frequencies, synth_out);
 
    int file, i;
 
@@ -27,8 +25,8 @@ module synthesizer_tb;
    Multiplier frequency_multiplier(firstm, secondm, multiplied);
 
    initial begin
-      for(int i = 0; i < 8; i++)begin
-         voice_volumes[i] <= 1 <<< 19;
+      for(int i = 0; i < 7; i++)begin
+         voice_volumes[i] <= 1 <<< 20;
          frequencies[i] <= 1;
       end
    end
@@ -44,7 +42,7 @@ module synthesizer_tb;
 			firstm <= 110 <<< 20;
 			secondm <= ratios[tone];
 			#1;
-         for(int i=0; i<16;i++)begin
+         for(int i=0; i<8;i++)begin
             frequencies[i] <= multiplied * (2^(i%3));
          end
          #1;
@@ -87,7 +85,7 @@ module synthesizer_tb;
 
    task set_ratios;
       ratios_left[0] = 1;
-      ratios_left[1] = 16;;
+      ratios_left[1] = 16;
       ratios_left[2] = 9;
       ratios_left[3] = 6;
       ratios_left[4] = 5;

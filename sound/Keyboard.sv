@@ -1,49 +1,49 @@
-module Keyboard(input pressed, input[8:0] code, output int frequencies[7:0], voice_volumes);
+module Keyboard(input clk, input pressed, input[7:0] code, output int frequencies[7:0], voice_volumes);
 	int ratios_left[12:0];
 	int ratios_right[12:0];
 	int ratios [12:0];
 	longint first, second;
-	wire[31:0] divided;
+	wire[31:0] ratio;
 
 	initial begin
-		for (int i = 0; i < 8; i++) begin: init_volumes
+		for (int i = 0; i < 7; i++) begin: init_volumes
 			voice_volumes[i] = 0;
 		end
 		set_ratios();
 	end
 
-    Divider ratio_divider(first, second, divided);
+    Divider ratio_divider(first, second, ratio);
 
 	task set_division(byte index);
       first = ratios_left[index] <<< 20;
       second = ratios_right[index] <<< 20;
     endtask
 
-	always @(posedge clk_audio) begin
+	always @(posedge clk) begin
 		casex(code)
-			'h015: set_division(0); // R
-			'h016: set_division(1); // F
-			'h01D: set_division(2); // D
-			'h026: set_division(3); // G
-			'h024: set_division(4); // A
-			'h02D: set_division(5); // A
-			'h02E: set_division(6); // A
-			'h02C: set_division(7); // A
-			'h036: set_division(8); // A
-			'h035: set_division(9); // A
-			'h036: set_division(10); // A
-			'h03D: set_division(11); // A
-			'h03C: set_division(12); // A
+			'h15: set_division(0); // Q
+			'h16: set_division(1); // 2
+			'h1D: set_division(2); // W
+			'h26: set_division(3); // 3
+			'h24: set_division(4); // E
+			'h2D: set_division(5); // R
+			'h2E: set_division(6); // 5
+			'h2C: set_division(7); // T
+			'h36: set_division(8); // 6
+			'h35: set_division(9); // Y
+			'h3D: set_division(10); // 7
+			'h3C: set_division(11); // U
+			'h43: set_division(12); // I
 		endcase
 
-		for (int i = 0; i < 8; i++)begin: set_voice
+		for (int i = 0; i < 7; i++)begin: set_voice
 			if(pressed)begin
 				if(voice_volumes[i] == 0)begin
 					voice_volumes[i] <= 1 <<< 20;
-					frequencies[i] <= divided * 110;
+					frequencies[i] <= ratio * 110;
 				end	
 			end else begin
-				if(frequencies[i] == divided && voice_volumes[i] == 1)begin
+				if(frequencies[i] == ratio && voice_volumes[i] == 1)begin
 					voice_volumes[i] <= 0;
 				end
 			end

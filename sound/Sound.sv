@@ -265,12 +265,20 @@ module emu
 
 	wire reset = status[0] | buttons[1] |ioctl_download; 
 
+	wire[7:0] frequencies, voice_volumes;
+
+	Keyboard keyboard(
+		.clk(clk_audio),
+		.pressed(ps2_key[9]),
+		.code(ps2_key[7:0]),
+		.frequencies(frequencies), 
+		.voice_volumes(voice_volumes)
+	);
+
 	Synthesizer synth(
 		.clk(clk_audio),
 		.clock_speed(960000),
 		.cutoff(4),
-		.volume_square(1 << 19),
-		.volume_saw(1 << 19),
 		.voice_volumes(voice_volumes),
 		.frequencies(frequencies),
 		.out(audio)
