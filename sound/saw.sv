@@ -1,11 +1,3 @@
-`ifndef fixed_point_math
-    `include "fixed_point_math.sv"
-`endif
-
-`ifndef saw
-
-`define saw 1
-
 module saw(input clk, input[31:0] wave_length, output[31:0] out);
     longint counter = 0;
 
@@ -24,5 +16,3 @@ module saw(input clk, input[31:0] wave_length, output[31:0] out);
     end
 
 endmodule
-
-`endif

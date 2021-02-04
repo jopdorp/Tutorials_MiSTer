@@ -1,7 +1,3 @@
-`ifndef fixed_point_math
-    `include "fixed_point_math.sv"
-`endif
-
 module MultiplierTestBench;
 
 	int a, b, result;

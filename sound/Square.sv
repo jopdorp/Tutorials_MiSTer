@@ -1,7 +1,3 @@
-`ifndef square
-
-`define square 1
-
 module square(
 	input clk,
 	input[31:0] wave_length,
@@ -22,4 +18,3 @@ module square(
 	end
 
 endmodule
-`endif

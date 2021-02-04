@@ -1,17 +1,10 @@
-`ifndef synthesizer
-	`include "Synthesizer.sv"
-`endif
-
-`ifndef fixed_point_math
-    `include "fixed_point_math.sv"
-`endif
-
 module synthesizer_tb;
 
    bit clk = 0;
    shortint synth_out;
 
-   int frequency[15:0];
+   int frequencies[15:0];
+   int voice_volumes[15:0];
    localparam int saw_volume = 1 <<< 19;
    localparam int square_volume = 1 <<< 19;
    localparam int clock_speed = 48000;
@@ -19,7 +12,7 @@ module synthesizer_tb;
 
    reg[2:0] cutoff = 0;
 
-   synthesizer synth(clk, clock_speed, cutoff, square_volume, saw_volume, frequency, synth_out);
+   Synthesizer synth(clk, clock_speed, cutoff, square_volume, saw_volume, voice_volumes, frequencies, synth_out);
 
    int file, i;
 
@@ -34,8 +27,9 @@ module synthesizer_tb;
    Multiplier frequency_multiplier(firstm, secondm, multiplied);
 
    initial begin
-      foreach(frequency[i])begin
-         frequency[i] <= 1;
+      for(int i = 0; i < 16; i++)begin
+         voice_volumes[i] <= 1 <<< 19;
+         frequencies[i] <= 1;
       end
    end
    task set_division(int a, b);
@@ -49,8 +43,8 @@ module synthesizer_tb;
 			firstm <= 110 <<< 20;
 			secondm <= ratios[tone];
 			#1;
-         foreach(frequency[i])begin
-            frequency[i] <= multiplied * (2^(i%3));
+         for(int i=0; i<16;i++)begin
+            frequencies[i] <= multiplied * (2^(i%3));
          end
          #1;
          $fwrite(file,"%d\n", synth_out);

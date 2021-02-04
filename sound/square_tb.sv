@@ -1,11 +1,3 @@
-`ifndef saw
-	`include "saw.sv"
-`endif
-
-`ifndef square
-	`include "Square.sv"
-`endif
-
 module square_tb;
 
    localparam longint CLOCK_FREQUENCY = 24000000 <<< 20;
@@ -57,31 +49,31 @@ module square_tb;
 
 
    task open_files;
-      foreach (generator_types[i]) begin
+      for (int i = 0; i < 2; i++) begin
          file[i] = $fopen({generator_types[i],".csv"}, "wb");
       end
    endtask
 
    task write_samples;
-      foreach(generator_types[i])begin
+      for (int i = 0; i < 2; i++) begin
          if (generator_types[i] == "saw") begin
             #1 $fwrite(file[i],"%d\n", saw_value >>> 6);
          end
          if (generator_types[i] == "square") begin
             #1 $fwrite(file[i],"%d\n", square_value >>> 6);
          end
-      end
+      end;
    endtask
 
    task close_files;
-      foreach (generator_types[i]) begin
+      for (int i = 0; i < 2; i++) begin
          $fclose(file[i]);
       end
    endtask
 
 
    task check_results;
-      foreach (generator_types[i]) begin
+      for (int i = 0; i < 2; i++) begin
          expected_file[i]  = $fopen ({generator_types[i],".csv.expected"},"r");
          file[i]  = $fopen ({generator_types[i],".csv"},"r");
 
