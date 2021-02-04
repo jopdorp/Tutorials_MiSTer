@@ -1,4 +1,4 @@
-module saw(input clk, input[31:0] wave_length, output[31:0] out);
+module Saw(input clk, input[31:0] wave_length, output[31:0] out);
     longint counter = 0;
 
     wire[63:0] wave_length_fixed_point;

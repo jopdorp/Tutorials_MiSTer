@@ -13,19 +13,22 @@ module Synthesizer(
     PolyphonicOscilator square_osc();
     PolyphonicOscilator saw_osc();
 
-    int bla[7:0];
+    int freqs[7:0];
+    int vols[7:0];
+
     genvar j;
     generate
         for (j = 0; j < 8; j++) begin: set_frequencies
-            assign bla[j] = frequencies[j];
-            assign square_osc.wave_length_integer[j] = CLOCK_FREQUENCY / bla[j];
+            assign freqs[j] = frequencies[j];
+            assign vols[j] = voice_volumes[j];
+
+            assign square_osc.wave_length_integer[j] = CLOCK_FREQUENCY / freqs[j];
             assign saw_osc.wave_length_integer[j] = square_osc.wave_length_integer[j];
 
-            square square_oscilator(clk, square_osc.wave_length_integer[j], square_osc.value[j]);
-            saw saw_oscilator(clk, saw_osc.wave_length_integer[j], saw_osc.value[j]);
-
-            Multiplier apply_vol_square(square_osc.value[j],(volume_square >>> 4) * voice_volumes[j], saw_osc.mixed[j]);
-            Multiplier apply_vol_saw(saw_osc.value[j],(volume_saw >>> 4) * voice_volumes[j], square_osc.mixed[j]);
+            Square square_oscilator(clk, square_osc.wave_length_integer[j], square_osc.value[j]);
+            Saw saw_oscilator(clk, saw_osc.wave_length_integer[j], saw_osc.value[j]);
+            Multiplier apply_vol_square(square_osc.value[j],(volume_square >>> 4) * vols[j], saw_osc.mixed[j]);
+            Multiplier apply_vol_saw(saw_osc.value[j],(volume_saw >>> 4) * vols[j], square_osc.mixed[j]);
         end  
     endgenerate
 

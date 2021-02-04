@@ -1,4 +1,4 @@
-module square(
+module Square(
 	input clk,
 	input[31:0] wave_length,
 	output[31:0] out

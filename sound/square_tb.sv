@@ -1,7 +1,7 @@
 module square_tb;
 
-   localparam longint CLOCK_FREQUENCY = 24000000 <<< 20;
-   localparam length = (CLOCK_FREQUENCY >>> 20) / 20;
+   localparam longint CLOCK_FREQUENCY = 48000 <<< 20;
+   localparam length = CLOCK_FREQUENCY >>> 20;
    localparam START_FREQUENCY = 55 <<< 20;
    localparam UPPER_FREQUENCY = 1000 <<< 20;
 
@@ -13,9 +13,9 @@ module square_tb;
    assign wave_length_integer = CLOCK_FREQUENCY / frequency;
 
    int square_value;
-   square square_generator(clk, wave_length_integer, square_value);
+   Square square_generator(clk, wave_length_integer, square_value);
    int saw_value;
-   saw saw_generator(clk, wave_length_integer, saw_value);
+   Saw saw_generator(clk, wave_length_integer, saw_value);
    string generator_types[1:0];
 
    initial begin
@@ -30,7 +30,7 @@ module square_tb;
    int x,y;
    task generate_sound_csv;
       open_files();
-      for (int i = 0; i < length / 500; i = i + 1) begin
+      for (int i = 0; i < length; i = i + 1) begin
          if (i % 50 == 0) begin
             frequency = frequency * 1.01;
          end
@@ -38,10 +38,8 @@ module square_tb;
             frequency = START_FREQUENCY;
          end
          write_samples();
-         for (int j = 0; j < 500; j = j + 1) begin
-            #1 clk = !clk;
-            #1 clk = !clk;
-         end
+         #1 clk = !clk;
+         #1 clk = !clk;
       end
       close_files();
       check_results();

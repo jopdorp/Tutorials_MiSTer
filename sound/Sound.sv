@@ -113,7 +113,7 @@ module emu
 
 	////////////////////   CLOCKS   ///////////////////
 
-	wire clk_sys, clk_36, clk_48;
+	wire clk_sys, clk_audio, clk_48;
 	wire pll_locked;
 
 	pll pll
@@ -121,7 +121,7 @@ module emu
 		.refclk(CLK_50M),
 		.rst(0),
 		.outclk_0(clk_48),
-		.outclk_1(clk_36), // 36
+		.outclk_1(clk_audio), // 0.96
 		.outclk_2(clk_sys),  //24
 		.locked(pll_locked)
 	);
@@ -174,150 +174,7 @@ module emu
 		.ps2_key(ps2_key)
 	);
 
-
-	wire       pressed = ps2_key[9];
-	wire [8:0] code    = ps2_key[8:0];
-	int frequencies[7:0];
-	int voice_volumes[7:0];
-	
-	int ratios_left[12:0];
-	int ratios_right[12:0];
-	int ratios [12:0];
-	longint first, second;
-	wire[31:0] divided;
-
-	initial begin
-		for (int i = 0; i < 8; i++) begin: init_volumes
-			voice_volumes[i] = 0;
-		end
-		set_ratios();
-	end
-
-    Divider ratio_divider(first, second, divided);
-
-
-	task set_division(byte index);
-      first = ratios_left[index] <<< 20;
-      second = ratios_right[index] <<< 20;
-    endtask
-
-	always @(posedge clk_sys) begin
-		casex(code)
-			'h015: set_division(0); // R
-			'h016: set_division(1); // F
-			'h01D: set_division(2); // D
-			'h026: set_division(3); // G
-			'h024: set_division(4); // A
-			'h02D: set_division(5); // A
-			'h02E: set_division(6); // A
-			'h02C: set_division(7); // A
-			'h036: set_division(8); // A
-			'h035: set_division(9); // A
-			'h036: set_division(10); // A
-			'h03D: set_division(11); // A
-			'h03C: set_division(12); // A
-		endcase
-
-		for (int i = 0; i < 8; i++)begin: set_voice
-			if(pressed)begin
-				if(voice_volumes[i] == 0)begin
-					voice_volumes[i] <= 1 <<< 20;
-					frequencies[i] <= divided * 110;
-				end	
-			end else begin
-				if(frequencies[i] == divided && voice_volumes[i] == 1)begin
-					voice_volumes[i] <= 0;
-				end
-			end
-			
-		end
-	end
-
-	task set_ratios;
-		ratios_left[0] = 1;
-		ratios_left[1] = 16;;
-		ratios_left[2] = 9;
-		ratios_left[3] = 6;
-		ratios_left[4] = 5;
-		ratios_left[5] = 4;
-		ratios_left[6] = 45;
-		ratios_left[7] = 3;
-		ratios_left[8] = 8;
-		ratios_left[9] = 5;
-		ratios_left[10] = 16;
-		ratios_left[11] = 15;
-		ratios_left[12] = 2;
-
-		ratios_right[0] = 1;
-		ratios_right[1] = 15;
-		ratios_right[2] = 8;
-		ratios_right[3] = 5;
-		ratios_right[4] = 4;
-		ratios_right[5] = 3;
-		ratios_right[6] = 32;
-		ratios_right[7] = 2;
-		ratios_right[8] = 5;
-		ratios_right[9] = 3;
-		ratios_right[10]= 9;
-		ratios_right[11]= 8;
-		ratios_right[12]= 1;
-	endtask
-
-	always @(posedge clk_sys) begin
-		if (btn3_up) begin
-			difficulty <= difficulty-1;
-
-		end
-		if (btn4_up) begin
-			difficulty <= difficulty+1;
-
-		end
-	end
-	  wire btn3_state, btn3_dn, btn3_up;
-		 debounce d_btn3 (
-			.clk(clk_sys),
-			.i_btn(btn_left),
-			  .o_state(btn3_state),
-			  .o_ondn(btn3_dn),
-			  .o_onup(btn3_up)
-		 );
-	  wire btn4_state, btn4_dn, btn4_up;
-		 debounce d_btn4 (
-			.clk(clk_sys),
-			.i_btn(btn_right),
-			  .o_state(btn4_state),
-			  .o_ondn(btn4_dn),
-			  .o_onup(btn4_up)
-		 );
-
-
-	reg btn_up    = 0;
-	reg btn_down  = 0;
-	reg btn_right = 0;
-	reg btn_left  = 0;
-	reg btn_coin  = 0;
-	reg btn_fire  = 0;
-	reg btn_cheat = 0;
-
-	reg btn_start_1=0;
-	reg btn_start_2=0;
-	reg btn_coin_1=0;
-	reg btn_coin_2=0;
-	reg btn_up_2=0;
-	reg btn_down_2=0;
-	reg btn_left_2=0;
-	reg btn_right_2=0;
-	reg btn_fire_2=0;
-
 	wire no_rotate = status[2];
-	wire m_fire     = btn_fire    | joy1[4];
-	wire m_fire_2   = btn_fire_2  | joy2[4];
-	wire m_start    = btn_start_1 | joy1[5] | joy2[5];
-	wire m_start_2  = btn_start_2 | joy1[6] | joy2[6];
-	wire m_coin     = btn_coin    | joy1[7] | joy2[7] | btn_coin_1 | btn_coin_2;
-
-	wire m_cheat    = btn_cheat | joy1[8] | joy2[8];
-
 	wire hblank, vblank;
 	wire ohblank, ovblank;
 	wire hs, vs;
@@ -406,37 +263,11 @@ module emu
 		.VGA_DE(de)
 	);
 
-	reg toggle_switch=1'b0;
-
-	always @(posedge clk_sys) begin
-	if (btn0_up==1'b1) 
-	 toggle_switch<=~toggle_switch;
-
-	end
-
-	wire btn0_state, btn0_dn, btn0_up;
-	 debounce d_btn0 (
-		.clk(clk_sys),
-		.i_btn(btn_up),
-		  .o_state(btn0_state),
-		  .o_ondn(btn0_dn),
-		  .o_onup(btn0_up)
-	 );
-
-	wire btn1_state, btn1_dn, btn1_up;
-	 debounce d_btn1 (
-		.clk(clk_sys),
-		.i_btn(btn_down),
-		  .o_state(btn1_state),
-		  .o_ondn(btn1_dn),
-		  .o_onup(btn1_up)
-	 );
-
 	wire reset = status[0] | buttons[1] |ioctl_download; 
 
 	Synthesizer synth(
-		.clk(clk_sys),
-		.clock_speed(24000000),
+		.clk(clk_audio),
+		.clock_speed(960000),
 		.cutoff(4),
 		.volume_square(1 << 19),
 		.volume_saw(1 << 19),
@@ -445,38 +276,4 @@ module emu
 		.out(audio)
 	);
 
-endmodule
-
-module debounce(
-    input clk,
-    input i_btn,
-    output reg o_state,
-    output o_ondn,
-    output o_onup
-    );
-
-    // sync with clock and combat metastability
-    reg sync_0, sync_1;
-    always @(posedge clk) sync_0 <= i_btn;
-    always @(posedge clk) sync_1 <= sync_0;
-
-    // 2.6 ms counter at 100 MHz
-  reg [9:0] counter;
-    wire idle = (o_state == sync_1);
-    wire max = &counter;
-
-    always @(posedge clk)
-    begin
-        if (idle)
-            counter <= 0;
-        else
-        begin
-            counter <= counter + 1;
-            if (max)
-                o_state <= ~o_state;
-        end
-    end
-
-    assign o_ondn = ~idle & max & ~o_state;
-    assign o_onup = ~idle & max & o_state;
 endmodule

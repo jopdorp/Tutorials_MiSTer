@@ -3,8 +3,8 @@ module synthesizer_tb;
    bit clk = 0;
    shortint synth_out;
 
-   int frequencies[15:0];
-   int voice_volumes[15:0];
+   int frequencies[7:0];
+   int voice_volumes[7:0];
    localparam int saw_volume = 1 <<< 19;
    localparam int square_volume = 1 <<< 19;
    localparam int clock_speed = 48000;
@@ -27,11 +27,12 @@ module synthesizer_tb;
    Multiplier frequency_multiplier(firstm, secondm, multiplied);
 
    initial begin
-      for(int i = 0; i < 16; i++)begin
+      for(int i = 0; i < 8; i++)begin
          voice_volumes[i] <= 1 <<< 19;
          frequencies[i] <= 1;
       end
    end
+   
    task set_division(int a, b);
       first = a;
       second = b;
