@@ -270,8 +270,7 @@ module emu
 
 	Keyboard keyboard(
 		.clk(clk_audio),
-		.pressed(ps2_key[9]),
-		.code(ps2_key[7:0]),
+		.ps2_key(ps2_key),
 		.frequencies(frequencies), 
 		.voice_volumes(voice_volumes)
 	);
