@@ -46,7 +46,7 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 	task set_next_voice;
 		begin
 			for (reg[2:0] i = 0; i < 7; i++)begin: set_voice
-				if(!voice_volumes[i])begin
+				if(!voice_volumes[i] && i != selected_voice)begin
 					selected_voice <= i;
 				end
 			end
