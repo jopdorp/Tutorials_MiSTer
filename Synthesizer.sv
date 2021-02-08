@@ -80,7 +80,7 @@ module Synthesizer(
 endmodule
 
 interface OscilatorWires;
-    input[31:0] wave_length;
+    wire[31:0] wave_length;
     int counter;
     int out;
 endinterface
