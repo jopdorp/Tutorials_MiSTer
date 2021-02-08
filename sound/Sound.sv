@@ -269,7 +269,7 @@ module emu
 	wire[31:0] voice_volumes[7:0];
 
 	Keyboard keyboard(
-		.clk(clk_audio),
+		.clk(clk_sys),
 		.ps2_key(ps2_key),
 		.frequencies(frequencies), 
 		.voice_volumes(voice_volumes)
@@ -277,7 +277,8 @@ module emu
 
 	Synthesizer synth(
 		.clk(clk_audio),
-		.clock_speed(48000),
+		.clock_speed_divided_by_32(48000),
+		.filter_enabled(1),
 		.cutoff(4),
 		.voice_volumes(voice_volumes),
 		.frequencies(frequencies),

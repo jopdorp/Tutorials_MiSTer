@@ -66,7 +66,7 @@ module Synthesizer(
         end
 
         if (step == 3 && voice == 0) begin
-            set_output(voice);
+            set_output();
         end
     end
 
