@@ -5,7 +5,7 @@ module Synthesizer(
     input[2:0] cutoff,
     input[31:0] voice_volumes[7:0],
     input[31:0] frequencies[7:0],
-    output shortint out
+    output[15:0] out
 );
     `include "multiply.sv"
 
@@ -22,15 +22,15 @@ module Synthesizer(
     int mixed_sample = 0;
     int combined;
     int combined_result;
-
     
-    OscilatorWires square(clk,1'b1);
+    OscilatorWires square();
+    assign square.wave_length = clock_speed_divided_by_16 / frequencies[voice];
 
     Square square_oscilator(
-        .clk(square.clk),
-        .set(square.set),
-        .set_sample(square.set_sample),
-        .set_counter(square.set_counter),
+        .clk(clk),
+        .set(1'b1),
+        .set_sample(voice_samples[voice]),
+        .set_counter(voice_counters[voice]),
         .wave_length(square.wave_length),
         .counter(square.counter),
         .out(square.out)
@@ -38,10 +38,6 @@ module Synthesizer(
 
     reg step = 0;
     reg[2:0] voice = 0;
-
-    assign square.wave_length = clock_speed_divided_by_16 / frequencies[voice];
-    assign square.set_sample = voice_samples[voice];
-    assign square.set_counter = voice_counters[voice];
 
     always @(posedge clk) begin
         step <= step + 1;
@@ -83,10 +79,8 @@ module Synthesizer(
 
 endmodule
 
-interface OscilatorWires(input clk, input set);
-	wire[31:0] set_sample;
-	wire[31:0] set_counter;
-	wire[31:0] wave_length;
+interface OscilatorWires;
+    input[31:0] wave_length;
     int counter;
     int out;
 endinterface
