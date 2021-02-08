@@ -2,16 +2,16 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 	`include "get_note_number.sv"
 	`include "set_note_frequencies_pythagorean.sv"
 
-	localparam TOP_NOTE = 31;
 	localparam GROUND_NOTE_FREQ = 55 <<< 20;
+	localparam TOP_NOTE = 31;
 	int ratios [TOP_NOTE:0];
+	int note_frequencies[TOP_NOTE:0];
 
-	byte note_number = -1;
 	wire pressed = ps2_key[9];
 	wire new_state = ps2_key[10];
+	byte note_number = -1;
 	reg[2:0] selected_voice = 0;
 
-	int note_frequencies[TOP_NOTE:0];
 
 	initial begin
 		for (int i = 0; i < 7; i++) begin: init_volumes
@@ -63,7 +63,7 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 		reg[2:0] next_voice;
 		next_voice = 0;
 		for (reg[2:0] i = 0; i < 7; i++)begin
-			if(!voice_volumes[i] && i != selected_voice)begin
+			if (!voice_volumes[i] && i != selected_voice) begin
 				next_voice = i;
 			end
 		end
