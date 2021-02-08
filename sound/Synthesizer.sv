@@ -1,60 +1,102 @@
 module Synthesizer(
     input clk,
-    input[31:0] clock_speed,
+    input[31:0] clock_speed_divided_by_32,
+    input filter_enabled,
     input[2:0] cutoff,
     input[31:0] voice_volumes[7:0],
     input[31:0] frequencies[7:0],
-    output[15:0] out
+    output shortint out
 );
-	wire[63:0] CLOCK_FREQUENCY = clock_speed <<< 20;
+	wire[63:0] CLOCK_FREQUENCY = clock_speed_divided_by_32 <<< 20;
 
-    PolyphonicOscilator square_osc();
-    PolyphonicOscilator saw_osc();
+    int square_value;
+    int mixed_sample;
 
-    int freqs[7:0];
-    int vols[7:0];
+    int wave_length_integer;
+    int combined;
+    int combined_result;
 
-    genvar j;
-    generate
-        for (j = 0; j < 7; j++) begin: set_frequencies
-            assign freqs[j] = frequencies[j];
-            assign vols[j] = voice_volumes[j];
+    int voice_samples[7:0];
+    int voice_counters[7:0];
 
-            assign square_osc.wave_length_integer[j] = CLOCK_FREQUENCY / freqs[j];
-            assign saw_osc.wave_length_integer[j] = square_osc.wave_length_integer[j];
+    initial begin
+      for(int i = 0; i < 7; i++) begin
+         voice_samples[i] = -1 <<< 20;
+         voice_counters[i] = 1;
+      end
+    end
+    
+    int set_sample;
+    int set_counter;
+    int out_counter;
 
-            Square square_oscilator(clk, square_osc.wave_length_integer[j], square_osc.value[j]);
-            Saw saw_oscilator(clk, saw_osc.wave_length_integer[j], saw_osc.value[j]);
-            Multiplier apply_vol_square(square_osc.combined, vols[j], saw_osc.mixed[j]);
-            Multiplier apply_vol_saw(saw_osc.combined,vols[j], square_osc.mixed[j]);
+    longint volume;
 
-        end  
-    endgenerate
+    wire[63:0] sample;
+    assign sample = square_value;
+
+
+    Multiplier apply_vol_saw(sample, volume, mixed_sample);
+
+    Square square_oscilator(
+        .clk(clk),
+        .set(1'b1),
+        .set_sample(set_sample),
+        .set_counter(set_counter),
+        .wave_length(wave_length_integer),
+        .counter(out_counter),
+        .out(square_value)
+    );
+
+    reg[1:0] step = 0;
+
+    reg[2:0] voice = 0;
 
     always @(posedge clk) begin
-        square_osc.combined = 0;
-        saw_osc.combined = 0;
-        for(byte k = 0; k < 7; k++) begin
-            saw_osc.combined = saw_osc.combined + saw_osc.value[k];
-            square_osc.combined = square_osc.combined + square_osc.value[k];
+        step <= step + 1;
+        if (step == 0) begin
+            if(voice == 0)begin
+            end
+            prepare_voice(voice);
+        end 
+
+        if (step == 2) begin
+            mix_voices(voice);
+            voice <= voice + 1;
+        end
+
+        if (step == 3 && voice == 0) begin
+            set_output(voice);
         end
     end
+
+    task prepare_voice(reg[2:0] index);
+        set_sample <= voice_samples[index];
+        set_counter <= voice_counters[index];
+        wave_length_integer <= CLOCK_FREQUENCY / frequencies[index];
+        volume <= voice_volumes[index];
+    endtask
+
+    task mix_voices(reg[2:0] index);
+        voice_samples[index] <= square_value;
+        voice_counters[index] <= out_counter;
+        combined <= (index == 0) ? mixed_sample : combined + mixed_sample;
+    endtask
+
+    task set_output;
+        combined_result <= combined;
+    endtask
 
     localparam N_FILTERS = 8;
     wire[31:0]  filter_outs[N_FILTERS-1:0];
     genvar i;
     generate
         for (i = 0; i < N_FILTERS; i = i + 1) begin : set_filters
-            iirLowPassSinglePole #(i,32) filter0(clk, (square_osc.combined + saw_osc.combined) <<< 7, filter_outs[i]);
+            iirLowPassSinglePole #(i,32) filter0(clk, combined_result <<< 7, filter_outs[i]);
         end
     endgenerate
-    assign out = filter_outs[cutoff] >>> 16;
-    
-endmodule
 
-interface PolyphonicOscilator();
-    wire[31:0] wave_length_integer[7:0];
-    wire[31:0] value[7:0];
-    int mixed[7:0];
-    int combined;
-endinterface
+    assign out = filter_enabled ? filter_outs[cutoff] >>> 16 : combined_result >>> 6;
+
+
+endmodule

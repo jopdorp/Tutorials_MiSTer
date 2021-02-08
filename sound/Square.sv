@@ -1,20 +1,32 @@
 module Square(
 	input clk,
+	input set,
+	input[31:0] set_sample,
+	input[31:0] set_counter,
 	input[31:0] wave_length,
-	output[31:0] out
+	output int counter,
+	output int out
 );
-	int counter = 0;
-	int square_wave_value = -1 <<< 20;
-	int half_wave_length_integer;
-	assign out = square_wave_value;
-	
+	initial begin
+		out = -1 <<< 20;
+		counter = 1;
+	end
+
 	always @(posedge clk) begin
-	  if (counter >= wave_length / 2) begin
-			counter <= 0;
-			square_wave_value <= square_wave_value * -1;
+	  if (get_counter() >= wave_length / 2) begin
+			out <= get_sample() * -1;
+			counter <= 1;
 	  end else begin
-			counter <= counter + 1;
+		  	out <= get_sample();
+		  	counter <= get_counter() + 1;
 	  end
 	end
 
+	function int get_sample;
+		return (set ? set_sample : out);
+	endfunction
+
+	function int get_counter;
+		return (set ? set_counter : counter);
+	endfunction
 endmodule

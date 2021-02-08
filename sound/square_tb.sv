@@ -1,92 +1,111 @@
-module square_tb;
+module osc_tb;
+   localparam longint CLOCK_FREQUENCY = 220 <<< 20;
 
-   localparam longint CLOCK_FREQUENCY = 48000 <<< 20;
-   localparam length = CLOCK_FREQUENCY >>> 20;
-   localparam START_FREQUENCY = 55 <<< 20;
-   localparam UPPER_FREQUENCY = 1000 <<< 20;
+   reg clk = 0;
 
-   bit clk = 0;
 
-   int frequency = START_FREQUENCY;
- 
-   wire[31:0] wave_length_integer;
-   assign wave_length_integer = CLOCK_FREQUENCY / frequency;
-
+   reg set = 0;
+   int set_sample;
+   int set_counter;
+   int out_counter;
    int square_value;
-   Square square_generator(clk, wave_length_integer, square_value);
-   int saw_value;
-   Saw saw_generator(clk, wave_length_integer, saw_value);
-   string generator_types[1:0];
+
+   int wave_length_integer = get_wave_length(55 <<< 20); 
+
+   Square square_generator(clk, set, set_sample, set_counter, wave_length_integer, out_counter, square_value);
 
    initial begin
-       generator_types[0] = "square";
-       generator_types[1] = "saw";      
+      foreach (voice_samples[i]) begin
+         voice_samples[i] = 1 <<< 20;
+         voice_counters[i] = 1;
+      end
+      
+      test_single_voice();
+      test_two_voices();
    end
 
+   int voice_samples[1:0];
+   int voice_counters[1:0];
+   int voice_wave_lengths[1:0];
 
-   int file[1:0];
-   int expected_file[1:0];
-   int expected, actual;
-   int x,y;
-   task generate_sound_csv;
-      open_files();
-      for (int i = 0; i < length; i = i + 1) begin
-         if (i % 50 == 0) begin
-            frequency = frequency * 1.01;
-         end
-         if (frequency >= UPPER_FREQUENCY) begin
-            frequency = START_FREQUENCY;
-         end
-         write_samples();
+   int expected_values[1:0];
+
+   task test_two_voices;
+      set = 1;
+      voice_wave_lengths[0] = get_wave_length(55 <<< 20);
+      voice_wave_lengths[1] = get_wave_length(110 <<< 20);
+      expected_values[0] = 1 <<< 20;
+      expected_values[1] = -1 <<< 20;
+      run_and_assert_two_voices();
+      expected_values[0] = -1 <<< 20;
+      expected_values[1] = 1 <<< 20;
+      run_and_assert_two_voices();
+      expected_values[1] = -1 <<< 20;
+      run_and_assert_two_voices();
+      expected_values[1] = 1 <<< 20;
+      expected_values[0] = 1 <<< 20;
+      run_and_assert_two_voices();
+      expected_values[1] = -1 <<< 20;
+      run_and_assert_two_voices();
+      expected_values[1] = 1 <<< 20;
+      expected_values[0] = -1 <<< 20;
+      run_and_assert_two_voices();
+   endtask
+
+
+   function int get_wave_length(int frequency);
+      return CLOCK_FREQUENCY / frequency;
+   endfunction
+
+   task run_and_assert_two_voices;
+      foreach (voice_samples[i]) begin
+         #(i*4);
          #1 clk = !clk;
          #1 clk = !clk;
-      end
-      close_files();
-      check_results();
-   endtask
+         set_sample <= voice_samples[i];
+         set_counter <= voice_counters[i];
+         wave_length_integer <= voice_wave_lengths[i];
 
+         #1 clk = !clk;
+         #1 clk = !clk;
+         voice_samples[i] <= square_value;
+         voice_counters[i] <= out_counter;
 
-   task open_files;
-      for (int i = 0; i < 2; i++) begin
-         file[i] = $fopen({generator_types[i],".csv"}, "wb");
-      end
-   endtask
-
-   task write_samples;
-      for (int i = 0; i < 2; i++) begin
-         if (generator_types[i] == "saw") begin
-            #1 $fwrite(file[i],"%d\n", saw_value >>> 6);
+         assert (square_value == expected_values[i]) else begin
+            $error ("wave_length_integer is: %d , The counter is:%d , The square_value is:%d , The value expected is:%d", wave_length_integer, voice_counters[i], square_value, expected_values[i]);
          end
-         if (generator_types[i] == "square") begin
-            #1 $fwrite(file[i],"%d\n", square_value >>> 6);
-         end
-      end;
+         #1;
+      end
+      
    endtask
 
-   task close_files;
-      for (int i = 0; i < 2; i++) begin
-         $fclose(file[i]);
+   task test_single_voice;
+      wave_length_integer = get_wave_length(55 <<< 20);
+      run_and_assert(-1 <<< 20);
+      run_and_assert(1 <<< 20);
+      run_and_assert(1 <<< 20);
+      run_and_assert(-1 <<< 20);
+      run_and_assert(-1 <<< 20);
+      run_and_assert(1 <<< 20);
+      wave_length_integer = get_wave_length(110 <<< 20);
+      run_and_assert(-1 <<< 20);
+      run_and_assert(1 <<< 20);
+      run_and_assert(-1 <<< 20);
+      wave_length_integer = get_wave_length(55 <<< 20);
+      run_and_assert(-1 <<< 20);
+      run_and_assert(1 <<< 20);
+      run_and_assert(1 <<< 20);
+      run_and_assert(-1 <<< 20);
+      run_and_assert(-1 <<< 20);
+      run_and_assert(1 <<< 20);
+   endtask
+
+   task run_and_assert(int expected_value);
+      #1 clk = !clk;
+      #1 clk = !clk;
+      #1;
+      assert (square_value == expected_value) else begin
+         $error ("The square_value is:%d , The value expected is:%d",square_value,expected_value);
       end
    endtask
-
-
-   task check_results;
-      for (int i = 0; i < 2; i++) begin
-         expected_file[i]  = $fopen ({generator_types[i],".csv.expected"},"r");
-         file[i]  = $fopen ({generator_types[i],".csv"},"r");
-
-         while(!$feof(expected_file[i]) || !$feof(file[i]))begin
-            x = $fscanf(expected_file[i]," %d ", expected );
-            y = $fscanf(file[i]," %d ", actual);
-            assert (actual == expected) else begin
-               $error ("The value is:%d , The value expected is:%d",actual,expected);
-            end
-         end
-      end
-   endtask
-
-   initial begin
-      generate_sound_csv();
-   end
-
 endmodule
