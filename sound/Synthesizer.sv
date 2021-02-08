@@ -1,6 +1,6 @@
 module Synthesizer(
     input clk,
-    input[31:0] clock_speed_divided_by_32,
+    input[63:0] clock_speed_divided_by_16,
     input filter_enabled,
     input[2:0] cutoff,
     input[31:0] voice_volumes[7:0],
@@ -8,8 +8,6 @@ module Synthesizer(
     output shortint out
 );
     `include "multiply.sv"
-
-	wire[63:0] CLOCK_FREQUENCY = clock_speed_divided_by_32 <<< 20;
 
     initial begin
       for(int i = 0; i < 7; i++) begin
@@ -25,10 +23,9 @@ module Synthesizer(
     int combined;
     int combined_result;
 
-    wire[63:0] sample;
-    assign sample = square.out;
-
+    
     OscilatorWires square(clk,1'b1);
+
     Square square_oscilator(
         .clk(square.clk),
         .set(square.set),
@@ -39,32 +36,24 @@ module Synthesizer(
         .out(square.out)
     );
 
-    reg[1:0] step = 0;
+    reg step = 0;
     reg[2:0] voice = 0;
+
+    assign square.wave_length = clock_speed_divided_by_16 / frequencies[voice];
+    assign square.set_sample = voice_samples[voice];
+    assign square.set_counter = voice_counters[voice];
 
     always @(posedge clk) begin
         step <= step + 1;
-        if (step == 0) begin
-            if(voice == 0)begin
-            end
-            prepare_voice(voice);
-        end 
 
-        if (step == 2) begin
+        if (step == 1) begin
             mix_voices(voice);
             voice <= voice + 1;
-        end
-
-        if (step == 3 && voice == 0) begin
-            set_output();
+            if (voice == 7) begin
+                set_output();
+            end
         end
     end
-
-    task prepare_voice(reg[2:0] index);
-        square.set_sample <= voice_samples[index];
-        square.set_counter <= voice_counters[index];
-        square.wave_length <= CLOCK_FREQUENCY / frequencies[index];
-    endtask
 
     task mix_voices(reg[2:0] index);
         voice_samples[index] <= square.out;
@@ -74,7 +63,7 @@ module Synthesizer(
     endtask
 
     function int mix_voice(reg[2:0] index);
-        return multiply(sample,voice_volumes[index]);
+        return multiply(square.out,voice_volumes[index]);
     endfunction
 
     task set_output;
@@ -95,10 +84,10 @@ module Synthesizer(
 endmodule
 
 interface OscilatorWires(input clk, input set);
-	reg[31:0] set_sample;
-	reg[31:0] set_counter;
-	reg[31:0] wave_length;
-    output[31:0] counter;
-    output[31:0] out;
+	wire[31:0] set_sample;
+	wire[31:0] set_counter;
+	wire[31:0] wave_length;
+    int counter;
+    int out;
 endinterface
 
