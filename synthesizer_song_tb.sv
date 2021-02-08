@@ -5,12 +5,12 @@ module synthesizer_tb;
 
    int frequencies[7:0];
    int voice_volumes[7:0];
-   localparam int clock_speed_divided_by_32 = 48000;
-   localparam longint length = clock_speed_divided_by_32 / 4;
+   localparam longint clock_speed_divided_by_16 = 96000 <<< 20;
+   localparam longint length = (clock_speed_divided_by_16 >>> 20) / 4;
 
    reg[2:0] cutoff = 0;
 
-   Synthesizer synth(clk, clock_speed_divided_by_32, 1'b1, cutoff, voice_volumes, frequencies, synth_out);
+   Synthesizer synth(clk, clock_speed_divided_by_16, 1'b1, cutoff, voice_volumes, frequencies, synth_out);
 
    int file, i;
 

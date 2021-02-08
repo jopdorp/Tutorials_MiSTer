@@ -277,9 +277,9 @@ module emu
 
 	Synthesizer synth(
 		.clk(clk_audio),
-		.clock_speed_divided_by_16(96000),
-		.filter_enabled(1),
-		.cutoff(5),
+		.clock_speed_divided_by_16(96000 <<< 20),
+		.filter_enabled(1'b1),
+		.cutoff(3'd6),
 		.voice_volumes(voice_volumes),
 		.frequencies(frequencies),
 		.out(audio)

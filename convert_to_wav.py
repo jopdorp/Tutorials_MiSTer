@@ -7,8 +7,8 @@ def convert_to_wav(path):
     sf.write(path+'.wav', data, sample_rate_hz)
 
 sample_rate_hz = 48000
-convert_to_wav("square.csv")
-convert_to_wav("saw.csv")
+# convert_to_wav("square.csv")
+# convert_to_wav("saw.csv")
 convert_to_wav("synthesizer_song.csv")
 # convert_to_wav("synthesizer_sweeps.csv")
 # convert_to_wav("polyphony.csv")
