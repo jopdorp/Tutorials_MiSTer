@@ -99,7 +99,7 @@ module emu
 
 	`include "build_id.v" 
 	localparam CONF_STR = {
-		"SOUND;;",
+		"Verisynth;;",
 		"F,rom;",
 		"H0O1,Aspect Ratio,Original,Wide;",
 		"H0O2,Orientation,Vert,Horz;",
