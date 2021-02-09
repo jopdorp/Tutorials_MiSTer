@@ -279,7 +279,7 @@ module emu
 		.clk(clk_audio),
 		.clock_speed_divided_by_32(48000),
 		.filter_enabled(1),
-		.cutoff(4),
+		.cutoff(6),
 		.voice_volumes(voice_volumes),
 		.frequencies(frequencies),
 		.out(audio)

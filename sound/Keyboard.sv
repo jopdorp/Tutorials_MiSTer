@@ -7,11 +7,10 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 	int ratios [TOP_NOTE:0];
 	int note_frequencies[TOP_NOTE:0];
 
-	wire pressed = ps2_key[9];
-	wire new_state = ps2_key[10];
-	byte note_number = -1;
+	byte note_number;
+	assign note_number = get_note_number(ps2_key[8:0]);
+	
 	reg[2:0] selected_voice = 0;
-
 
 	initial begin
 		for (int i = 0; i < 7; i++) begin: init_volumes
@@ -23,22 +22,15 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 
 	always @(posedge clk) begin
 		reg old_state;
-		old_state <= new_state;
+		old_state <= ps2_key[10];
 		
-		if (old_state != new_state) begin
-			handle_key_event();
+		if (old_state != ps2_key[10] && note_number != -1) begin
+			update_voices();
 		end
 	end
 
-	task handle_key_event;
-		note_number = get_note_number(ps2_key[8:0]);
-		if(note_number != -1)begin
-			update_voices();
-		end
-	endtask
-
 	task update_voices;
-		if (pressed) begin
+		if (ps2_key[9]) begin
 			start_note();
 		end else begin
 			stop_note();
@@ -63,7 +55,7 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 		reg[2:0] next_voice;
 		next_voice = 0;
 		for (reg[2:0] i = 0; i < 7; i++)begin
-			if (!voice_volumes[i] && i != selected_voice) begin
+			if (voice_volumes[i] == 0 && i != selected_voice) begin
 				next_voice = i;
 			end
 		end

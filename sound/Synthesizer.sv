@@ -26,12 +26,12 @@ module Synthesizer(
     int combined_result;
 
     wire[63:0] sample;
+    OscilatorWires square(clk,1'b1);
     assign sample = square.out;
 
-    OscilatorWires square(clk,1'b1);
     Square square_oscilator(
-        .clk(square.clk),
-        .set(square.set),
+        .clk(clk),
+        .set(1),
         .set_sample(square.set_sample),
         .set_counter(square.set_counter),
         .wave_length(square.wave_length),
@@ -45,8 +45,6 @@ module Synthesizer(
     always @(posedge clk) begin
         step <= step + 1;
         if (step == 0) begin
-            if(voice == 0)begin
-            end
             prepare_voice(voice);
         end 
 
@@ -98,7 +96,7 @@ interface OscilatorWires(input clk, input set);
 	reg[31:0] set_sample;
 	reg[31:0] set_counter;
 	reg[31:0] wave_length;
-    output[31:0] counter;
-    output[31:0] out;
+    wire[31:0] counter;
+    wire[31:0] out;
 endinterface
 
