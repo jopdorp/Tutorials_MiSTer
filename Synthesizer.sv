@@ -31,7 +31,7 @@ module Synthesizer(
 
     Square square_oscilator(
         .clk(clk),
-        .set(1),
+        .set(1'b1),
         .set_sample(square.set_sample),
         .set_counter(square.set_counter),
         .wave_length(square.wave_length),
