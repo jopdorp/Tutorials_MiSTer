@@ -1,5 +1,5 @@
 module synthesizer_tb;
-   localparam int clock_speed = 220;
+   localparam int clock_speed = 48000;
    reg clk = 0;
 
    shortint sample;
@@ -66,7 +66,7 @@ module synthesizer_tb;
    endtask
 
    task run_and_assert(shortint expected_sample);
-      for(int i = 0; i < 32; i++)begin
+      for(int i = 0; i < 32 * (48000 / 220); i++)begin
          #(i*3);
          #1 clk = !clk;
          #1 clk = !clk;

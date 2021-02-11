@@ -2,9 +2,9 @@ module Square(
 	input clk,
 	input set,
 	input[31:0] set_sample,
-	input[31:0] set_counter,
-	input[31:0] wave_length,
-	output int counter,
+	input[15:0] set_counter,
+	input[15:0] wave_length,
+	output shortint counter,
 	output int out
 );
 	initial begin
@@ -13,7 +13,7 @@ module Square(
 	end
 
 	always @(posedge clk) begin
-	  if (get_counter() >= wave_length / 2) begin
+	  if (get_counter() * 2 >= wave_length) begin
 			out <= get_sample() * -1;
 			counter <= 1;
 	  end else begin

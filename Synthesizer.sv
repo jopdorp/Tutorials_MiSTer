@@ -25,7 +25,6 @@ module Synthesizer(
 
     wire[31:0] sample;
     OscilatorWires square(clk,1'b1);
-    assign sample = square.out;
 
     Square square_oscilator(
         .clk(clk),
@@ -70,7 +69,7 @@ module Synthesizer(
     endtask
 
     function int mix_voice(reg[2:0] index);
-        return multiply(sample,voice_volumes[index]);
+        return multiply(square.out, voice_volumes[index]);
     endfunction
 
     task set_output;
@@ -92,9 +91,9 @@ endmodule
 
 interface OscilatorWires(input clk, input set);
 	reg[31:0] set_sample;
-	reg[31:0] set_counter;
-	reg[31:0] wave_length;
-    wire[31:0] counter;
+	reg[15:0] set_counter;
+	reg[15:0] wave_length;
+    wire[15:0] counter;
     wire[31:0] out;
 endinterface
 
