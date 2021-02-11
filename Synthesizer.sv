@@ -1,6 +1,6 @@
 module Synthesizer(
     input clk,
-    input[31:0] clock_speed_divided_by_32,
+    input[31:0] clock_speed_divided_by_16,
     input filter_enabled,
     input[2:0] cutoff,
     input[31:0] voice_volumes[7:0],
@@ -48,16 +48,15 @@ module Synthesizer(
             if(voice == 0)begin
                 set_output();
             end
-        end else begin
             voice <= voice + 1;
-            next_voice <= (voice+2)%8;
+            next_voice <= (next_voice+1)%8;
         end
     end
 
     task prepare_voice;
         square.set_sample <= voice_samples[next_voice];
         square.set_counter <= voice_counters[next_voice];
-        square.wave_length <= (clock_speed_divided_by_32 <<< 10) / (frequencies[next_voice] >>> 10);
+        square.wave_length <= (clock_speed_divided_by_16 <<< 10) / (frequencies[next_voice] >>> 10);
     endtask
 
     task mix_voices;

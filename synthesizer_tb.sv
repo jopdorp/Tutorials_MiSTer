@@ -1,5 +1,5 @@
 module synthesizer_tb;
-   localparam int clock_speed = 48000;
+   localparam int clock_speed = 96000;
    reg clk = 0;
 
    shortint sample;
@@ -9,7 +9,7 @@ module synthesizer_tb;
 
    Synthesizer synth(
     .clk(clk),
-    .clock_speed_divided_by_32(clock_speed),
+    .clock_speed_divided_by_16(clock_speed),
     .filter_enabled(1'b0),
     .cutoff(3'd4),
     .voice_volumes(voice_volumes),
@@ -40,11 +40,11 @@ module synthesizer_tb;
       run_and_assert(1 <<< 14);
       run_and_assert(-1 <<< 14);
       frequencies[0] = 55 <<< 20;
+      run_and_assert(-1 <<< 14);
       run_and_assert(1 <<< 14);
       run_and_assert(1 <<< 14);
       run_and_assert(-1 <<< 14);
       run_and_assert(-1 <<< 14);
-      run_and_assert(1 <<< 14);
       frequencies[1] = 110 <<< 20;
       voice_volumes[0] = 0;
       voice_volumes[1] = 1 <<< 19;
@@ -52,16 +52,15 @@ module synthesizer_tb;
       run_and_assert(1 <<< 13);
       voice_volumes[0] = 1 <<< 19;
       run_and_assert(-1 <<< 14);
-      run_and_assert(1 <<< 14);
-      run_and_assert(0);
       run_and_assert(0 <<< 14);
-      run_and_assert(-1 <<< 14);
+      run_and_assert(0);
       run_and_assert(1 <<< 14);
+      run_and_assert(-1 <<< 14);
       run_and_assert(0);
    endtask
 
    task run_and_assert(shortint expected_sample);
-      for(int i = 0; i < 16 * (48000 / 220); i++)begin
+      for(int i = 0; i < 16 * (clock_speed / 220); i++)begin
          #(i*3);
          #1 clk = !clk;
          #1 clk = !clk;
