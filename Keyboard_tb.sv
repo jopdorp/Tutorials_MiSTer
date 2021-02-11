@@ -13,9 +13,10 @@ module KeyboardTestBench;
 
 	Keyboard keyboard(
 		.clk(clk),
+		.clock_frequency(24000000),
 		.ps2_key({ps2_state,is_pressed,1'b0,key_code}),
 		.frequencies(frequencies),
-		.voice_volumes(voice_volumes)
+		.voice_volumes_out(voice_volumes)
 	);
 	
 	task run_and_assert;
@@ -39,8 +40,9 @@ module KeyboardTestBench;
 		ps2_state = 1;
 		exp_frequencies[0] = 110 <<< 5;
 		exp_voice_volumes[0] = 1 <<< 20;
-		run_and_assert();
-		run_and_assert();
+		for(int i = 0; i < 60000; i ++) begin
+			run_and_assert();
+		end
 		is_pressed = 1;
 		key_code = 'h4A;
 		ps2_state = 0;
@@ -60,9 +62,12 @@ module KeyboardTestBench;
 	end
 
 	task run_clock;
-		#1 clk = !clk;
-		#1 clk = !clk;
-		#1;
+		for(int i = 0; i < (24000000 / 48000); i++)begin
+			#(i*3);
+			#1 clk = !clk;
+			#1 clk = !clk;
+			#1;
+		end
 	endtask
 	
 endmodule

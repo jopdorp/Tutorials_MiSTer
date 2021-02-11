@@ -270,9 +270,10 @@ module emu
 
 	Keyboard keyboard(
 		.clk(clk_sys),
+		.clock_frequency(24000000),
 		.ps2_key(ps2_key),
 		.frequencies(frequencies), 
-		.voice_volumes(voice_volumes)
+		.voice_volumes_out(voice_volumes)
 	);
 
 	Synthesizer synth(
