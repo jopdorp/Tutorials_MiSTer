@@ -22,9 +22,7 @@ module Synthesizer(
     int combined;
     int combined_result;
     
-    wire[63:0] sample;
     OscilatorWires square(clk,1'b1);
-    assign sample = square.out;
 
     Square square_oscilator(
         .clk(clk),
@@ -59,7 +57,7 @@ module Synthesizer(
     endtask
 
     function int mix_voice(reg[2:0] index);
-        return multiply(sample,voice_volumes[index]);
+        return multiply(square.out,voice_volumes[index]);
     endfunction
 
     task set_output;

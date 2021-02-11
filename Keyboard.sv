@@ -2,7 +2,6 @@ module Keyboard(input clk, input int clock_frequency, input[10:0] ps2_key, outpu
 	`include "get_note_number.sv"
 	`include "set_note_frequencies_pythagorean.sv"
 	`include "multiply.sv"
-	`include "divide.sv"
 
 	localparam GROUND_NOTE_FREQ = 55 <<< 20;
 	localparam TOP_NOTE = 31;
