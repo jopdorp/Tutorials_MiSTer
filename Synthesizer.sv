@@ -1,6 +1,6 @@
 module Synthesizer(
     input clk,
-    input[31:0] clock_speed_divided_by_32,
+    input[31:0] clock_speed_divided_by_16,
     input filter_enabled,
     input[2:0] cutoff,
     input[31:0] voice_volumes[7:0],
@@ -8,8 +8,6 @@ module Synthesizer(
     output shortint out
 );
     `include "multiply.sv"
-
-	wire[31:0] CLOCK_FREQUENCY = clock_speed_divided_by_32 <<< 10;
 
     initial begin
       for(int i = 0; i < 7; i++) begin
@@ -20,11 +18,10 @@ module Synthesizer(
     
     int voice_samples[7:0];
     int voice_counters[7:0];
-
     int mixed_sample = 0;
     int combined;
     int combined_result;
-
+    
     wire[63:0] sample;
     OscilatorWires square(clk,1'b1);
     assign sample = square.out;
@@ -32,41 +29,31 @@ module Synthesizer(
     Square square_oscilator(
         .clk(clk),
         .set(1'b1),
-        .set_sample(square.set_sample),
-        .set_counter(square.set_counter),
-        .wave_length(square.wave_length),
+        .set_sample(voice_samples[voice]),
+        .set_counter(voice_counters[voice]),
+        .wave_length((clock_speed_divided_by_16 <<< 10) / (frequencies[voice] >>> 10)),
         .counter(square.counter),
         .out(square.out)
     );
 
-    reg[1:0] step = 0;
+    reg step = 0;
     reg[2:0] voice = 0;
 
     always @(posedge clk) begin
         step <= step + 1;
-        if (step == 0) begin
-            prepare_voice(voice);
-        end 
 
-        if (step == 2) begin
+        if (step == 1) begin
             mix_voices(voice);
+            voice_samples[voice] <= square.out;
+            voice_counters[voice] <= square.counter;
             voice <= voice + 1;
-        end
-
-        if (step == 3 && voice == 0) begin
-            set_output();
+            if(voice == 7)begin
+                set_output();
+            end
         end
     end
 
-    task prepare_voice(reg[2:0] index);
-        square.set_sample <= voice_samples[index];
-        square.set_counter <= voice_counters[index];
-        square.wave_length <= CLOCK_FREQUENCY / (frequencies[index] >>> 10);
-    endtask
-
     task mix_voices(reg[2:0] index);
-        voice_samples[index] <= square.out;
-        voice_counters[index] <= square.counter;
         mixed_sample <= mix_voice(index);
         combined <= (index == 0) ? mixed_sample : combined + mixed_sample;
     endtask

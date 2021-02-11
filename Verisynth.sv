@@ -121,7 +121,7 @@ module emu
 		.refclk(CLK_50M),
 		.rst(0),
 		.outclk_0(clk_48),
-		.outclk_1(clk_audio), // 0.96
+		.outclk_1(clk_audio), // 1.536
 		.outclk_2(clk_sys),  //24
 		.locked(pll_locked)
 	);
@@ -269,7 +269,8 @@ module emu
 	wire[31:0] voice_volumes[7:0];
 
 	Keyboard keyboard(
-		.clk(clk_sys),
+		.clk(clk_audio),
+		.clock_frequency(1536000),
 		.ps2_key(ps2_key),
 		.frequencies(frequencies), 
 		.voice_volumes(voice_volumes)
@@ -277,7 +278,7 @@ module emu
 
 	Synthesizer synth(
 		.clk(clk_audio),
-		.clock_speed_divided_by_32(48000),
+		.clock_speed_divided_by_16(96000),
 		.filter_enabled(1'b1),
 		.cutoff(3'd6),
 		.voice_volumes(voice_volumes),

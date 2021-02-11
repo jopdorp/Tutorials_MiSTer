@@ -12,8 +12,9 @@ module Square(
 		counter = 1;
 	end
 
+
 	always @(posedge clk) begin
-	  if (get_counter() >= wave_length / 2) begin
+	  if (get_counter() * 2 >= wave_length -1) begin //TODO: -1 probably not needed, adjust testbench
 			out <= get_sample() * -1;
 			counter <= 1;
 	  end else begin

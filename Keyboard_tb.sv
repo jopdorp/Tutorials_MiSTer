@@ -13,12 +13,14 @@ module KeyboardTestBench;
 
 	Keyboard keyboard(
 		.clk(clk),
+		.clock_frequency(200),
 		.ps2_key({ps2_state,is_pressed,1'b0,key_code}),
 		.frequencies(frequencies),
 		.voice_volumes(voice_volumes)
 	);
 	
 	task run_and_assert;
+		run_clock();
 		run_clock();
 		for(int i = 0; i < 7; i++)begin
 			assert (voice_volumes[i] == exp_voice_volumes[i] && exp_frequencies[i] == frequencies[i]) else begin

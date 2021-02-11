@@ -11,7 +11,7 @@ task set_note_frequencties;
 	note_frequencies[9] = GROUND_NOTE_FREQ * 5 / 3;
 	note_frequencies[10] = GROUND_NOTE_FREQ * 16 / 9;
 	note_frequencies[11] = GROUND_NOTE_FREQ * 15 / 8;
-	for(int i = 12; i <= TOP_NOTE; i++)begin
+	for(byte i = 12; i <= TOP_NOTE; i++)begin
 		note_frequencies[i] = note_frequencies[i%12] <<< (i / 12);
 	end
 endtask
