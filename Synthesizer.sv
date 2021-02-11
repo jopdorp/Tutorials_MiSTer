@@ -36,40 +36,39 @@ module Synthesizer(
         .out(square.out)
     );
 
-    reg[1:0] step = 0;
+    reg step = 0;
     reg[2:0] voice = 0;
+    reg[2:0] next_voice = 1;
 
     always @(posedge clk) begin
         step <= step + 1;
         if (step == 0) begin
-            prepare_voice(voice);
-        end 
-
-        if (step == 2) begin
-            mix_voices(voice);
+            mix_voices();
+            prepare_voice();
+            if(voice == 0)begin
+                set_output();
+            end
+        end else begin
             voice <= voice + 1;
-        end
-
-        if (step == 3 && voice == 0) begin
-            set_output();
+            next_voice <= (voice+2)%8;
         end
     end
 
-    task prepare_voice(reg[2:0] index);
-        square.set_sample <= voice_samples[index];
-        square.set_counter <= voice_counters[index];
-        square.wave_length <= (clock_speed_divided_by_32 <<< 10) / (frequencies[voice] >>> 10);
+    task prepare_voice;
+        square.set_sample <= voice_samples[next_voice];
+        square.set_counter <= voice_counters[next_voice];
+        square.wave_length <= (clock_speed_divided_by_32 <<< 10) / (frequencies[next_voice] >>> 10);
     endtask
 
-    task mix_voices(reg[2:0] index);
-        voice_samples[index] <= square.out;
-        voice_counters[index] <= square.counter;
-        mixed_sample <= mix_voice(index);
-        combined <= (index == 0) ? mixed_sample : combined + mixed_sample;
+    task mix_voices;
+        mixed_sample <= mix_voice();
+        combined <= (voice == 0) ? mixed_sample : combined + mixed_sample;
+        voice_samples[voice] <= square.out;
+        voice_counters[voice] <= square.counter;
     endtask
 
-    function int mix_voice(reg[2:0] index);
-        return multiply(square.out, voice_volumes[index]);
+    function int mix_voice;
+        return multiply(square.out, voice_volumes[voice]);
     endfunction
 
     task set_output;
