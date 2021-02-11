@@ -1,11 +1,11 @@
 module synthesizer_tb;
-   localparam int clock_speed = 96000;
+   reg[16:0] clock_speed = 96000;
    reg clk = 0;
 
    shortint sample;
 
    int voice_volumes[7:0];
-   int frequencies[7:0];
+   shortint frequencies[7:0];
 
    Synthesizer synth(
     .clk(clk),
@@ -20,42 +20,44 @@ module synthesizer_tb;
    initial begin
       foreach(voice_volumes[i])begin
          voice_volumes[i] = 0;
-         frequencies[i] = 55 <<< 20;    
+         frequencies[i] = 55 <<< 10;    
       end
       voice_volumes[0] = 1 <<< 20;
       test_single_voice();
    end
    
    task test_single_voice;
-      frequencies[0] = 55 <<< 20;
+      frequencies[0] = 55 <<< 5;
       run_and_assert(-1 <<< 14);
       run_and_assert(-1 <<< 14);
       run_and_assert(1 <<< 14);
       run_and_assert(1 <<< 14);
       run_and_assert(-1 <<< 14);
       run_and_assert(-1 <<< 14);
-      frequencies[0] = 110 <<< 20;
+      frequencies[0] = 110 <<< 5;
       run_and_assert(1 <<< 14);
       run_and_assert(-1 <<< 14);
       run_and_assert(1 <<< 14);
       run_and_assert(-1 <<< 14);
-      frequencies[0] = 55 <<< 20;
+      frequencies[0] = 55 <<< 5;
       run_and_assert(-1 <<< 14);
       run_and_assert(1 <<< 14);
       run_and_assert(1 <<< 14);
       run_and_assert(-1 <<< 14);
       run_and_assert(-1 <<< 14);
-      frequencies[1] = 110 <<< 20;
+      frequencies[1] = 110 <<< 5;
       voice_volumes[0] = 0;
       voice_volumes[1] = 1 <<< 19;
-      run_and_assert(-1 <<< 13);
       run_and_assert(1 <<< 13);
+      run_and_assert(-1 <<< 13);
       voice_volumes[0] = 1 <<< 19;
-      run_and_assert(-1 <<< 14);
       run_and_assert(0 <<< 14);
-      run_and_assert(0);
-      run_and_assert(1 <<< 14);
       run_and_assert(-1 <<< 14);
+      run_and_assert(1 <<< 14);
+      run_and_assert(0);
+      run_and_assert(0);
+      run_and_assert(-1 <<< 14);
+      run_and_assert(1 <<< 14);
       run_and_assert(0);
    endtask
 

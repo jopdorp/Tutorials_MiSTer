@@ -3,14 +3,14 @@ module synthesizer_tb;
    bit clk = 0;
    shortint synth_out;
 
-   int frequencies[7:0];
+   shortint frequencies[7:0];
    int voice_volumes[7:0];
-   localparam int clock_speed_divided_by_32 = 48000;
-   localparam longint length = (clock_speed_divided_by_32 >>> 20) / 4;
+   localparam bit[16:0] clock_speed_divided_by_16 = 48000;
+   localparam int length = clock_speed_divided_by_16 / 4;
 
    reg[2:0] cutoff = 0;
 
-   Synthesizer synth(clk, clock_speed_divided_by_32, 1'b1, cutoff, voice_volumes, frequencies, synth_out);
+   Synthesizer synth(clk, clock_speed_divided_by_16, 1'b1, cutoff, voice_volumes, frequencies, synth_out);
 
    int file, i;
 
@@ -42,11 +42,11 @@ module synthesizer_tb;
         secondm <= ratios[tone];
         #1;
         for(int i=0; i<8;i++)begin
-            frequencies[i] <= multiplied * (2^(i%3));
+            frequencies[i] <= (multiplied * (2^(i%3))) >>> 15;
         end
         #1;
         $fwrite(file,"%d\n", synth_out);
-        for(int i = 0; i < 32; i++)begin
+        for(int i = 0; i < 16; i++)begin
             #(i*3);
             #1 clk = !clk;
             #1 clk = !clk;

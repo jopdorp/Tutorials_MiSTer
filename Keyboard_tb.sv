@@ -5,7 +5,7 @@ module KeyboardTestBench;
 	reg is_pressed = 0;
 	reg ps2_state = 0;
 	
-	wire[31:0] frequencies[7:0];
+	wire[15:0] frequencies[7:0];
 	wire[31:0] voice_volumes[7:0];
 	
 	int exp_voice_volumes[7:0];
@@ -37,14 +37,14 @@ module KeyboardTestBench;
 		key_code = 'h15;
 		is_pressed = 1;
 		ps2_state = 1;
-		exp_frequencies[0] = 110 <<< 20;
+		exp_frequencies[0] = 110 <<< 5;
 		exp_voice_volumes[0] = 1 <<< 20;
 		run_and_assert();
 		run_and_assert();
 		is_pressed = 1;
 		key_code = 'h4A;
 		ps2_state = 0;
-		exp_frequencies[6] = 144179200;
+		exp_frequencies[6] = 4400;
 		exp_voice_volumes[6] = 1 <<< 20;
 		run_and_assert();
 		key_code = 'h15;

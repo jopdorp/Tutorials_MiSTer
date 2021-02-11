@@ -1,11 +1,10 @@
-module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], output int voice_volumes[7:0]);
+module Keyboard(input clk, input[10:0] ps2_key, output shortint frequencies[7:0], output int voice_volumes[7:0]);
 	`include "get_note_number.sv"
 	`include "set_note_frequencies_pythagorean.sv"
 
-	localparam GROUND_NOTE_FREQ = 55 <<< 20;
+	localparam shortint GROUND_NOTE_FREQ = 55 <<< 5;
 	localparam TOP_NOTE = 31;
-	int ratios [TOP_NOTE:0];
-	int note_frequencies[TOP_NOTE:0];
+	shortint note_frequencies[TOP_NOTE:0];
 
 	byte note_number;
 	assign note_number = get_note_number(ps2_key[8:0]);
