@@ -9,8 +9,6 @@ module Synthesizer(
 );
     `include "multiply.sv"
 
-	wire[63:0] CLOCK_FREQUENCY = clock_speed_divided_by_32 <<< 20;
-
     initial begin
       for(int i = 0; i < 7; i++) begin
          voice_samples[i] = -1 <<< 20;
@@ -25,13 +23,13 @@ module Synthesizer(
     int combined;
     int combined_result;
 
-    wire[63:0] sample;
+    wire[31:0] sample;
     OscilatorWires square(clk,1'b1);
     assign sample = square.out;
 
     Square square_oscilator(
         .clk(clk),
-        .set(1),
+        .set(1'b1),
         .set_sample(square.set_sample),
         .set_counter(square.set_counter),
         .wave_length(square.wave_length),
@@ -61,7 +59,7 @@ module Synthesizer(
     task prepare_voice(reg[2:0] index);
         square.set_sample <= voice_samples[index];
         square.set_counter <= voice_counters[index];
-        square.wave_length <= CLOCK_FREQUENCY / frequencies[index];
+        square.wave_length <= (clock_speed_divided_by_32 <<< 10) / (frequencies[voice] >>> 10);
     endtask
 
     task mix_voices(reg[2:0] index);

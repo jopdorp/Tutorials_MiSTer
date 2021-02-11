@@ -39,5 +39,5 @@ c5_pin_model_dump.txt
 *.qarlog
 qar_info.json
 venv
-.wav
-.vvp
+*.wav
+*.vvp

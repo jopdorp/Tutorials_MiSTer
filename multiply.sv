@@ -1,3 +1,3 @@
-function int multiply(longint a,b);
-	return (a * b) >>> 20;
+function int multiply(int a,b);
+	return (a >>> 10) * (b >>> 10);
 endfunction
