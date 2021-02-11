@@ -40,7 +40,7 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 	task start_note;
 		voice_volumes[selected_voice] <= 1 <<< 20;
 		frequencies[selected_voice] <= note_frequencies[note_number];
-		selected_voice <= get_next_voice();
+		set_next_voice();
 	endtask
 
 	task stop_note;
@@ -51,15 +51,12 @@ module Keyboard(input clk, input[10:0] ps2_key, output int frequencies[7:0], out
 		end
 	endtask
 
-	function reg[2:0] get_next_voice;
-		reg[2:0] next_voice;
-		next_voice = 0;
+	task set_next_voice;
 		for (reg[2:0] i = 0; i < 7; i++)begin
 			if (voice_volumes[i] == 0 && i != selected_voice) begin
-				next_voice = i;
+				selected_voice <= i;
 			end
 		end
-		return next_voice;
-	endfunction
+	endtask
 
 endmodule

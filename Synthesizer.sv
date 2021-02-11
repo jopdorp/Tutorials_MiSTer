@@ -11,8 +11,8 @@ module Synthesizer(
 
     initial begin
       for(int i = 0; i < 7; i++) begin
-         voice_samples[i] = -1 <<< 20;
-         voice_counters[i] = 1;
+         voice_samples[i] <= -1 <<< 20;
+         voice_counters[i] <= 1;
       end
     end
     

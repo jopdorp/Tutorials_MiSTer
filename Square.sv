@@ -8,8 +8,8 @@ module Square(
 	output int out
 );
 	initial begin
-		out = -1 <<< 20;
-		counter = 1;
+		out <= -1 <<< 20;
+		counter <= 1;
 	end
 
 	always @(posedge clk) begin
